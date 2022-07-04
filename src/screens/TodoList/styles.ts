@@ -21,3 +21,10 @@ export const todoHeadLeftStyle = css({
 export const todoHeadRightStyle = css({
   width: rightSideWidthAtHeadTodo,
 })
+
+export const todoFilterStyle = css({
+  marginBottom: 8,
+  '& button': {
+    marginRight: 8,
+  },
+})

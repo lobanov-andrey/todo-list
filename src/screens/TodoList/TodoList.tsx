@@ -2,112 +2,38 @@ import Button from 'components/Button/Button'
 import Input from 'components/Input/Input'
 import Sortable from 'components/Sortable/Sortable'
 import TaskCard from 'components/TaskCard/TaskCard'
-import Task from 'interfaces/Task'
-import { arrayMoveImmutable } from 'modules/arrayMove'
 import React, { useCallback, useState } from 'react'
-import { todoHeadLeftStyle, todoHeadRightStyle, todoHeadStyle, todoStyle } from './styles'
-
-let mockTasks = [
-  {
-    text: 'do something',
-    id: Date.now(),
-    done: false,
-  },
-  {
-    text: 'wash dishes',
-    id: Date.now() + 1,
-    done: true,
-  },
-  {
-    text: 'watch series',
-    id: Date.now() + 2,
-    done: false,
-  },
-  {
-    text: 'read book',
-    id: Date.now() + 3,
-    done: false,
-  },
-  {
-    text: 'walk',
-    id: Date.now() + 4,
-    done: false,
-  },
-  {
-    text: 'pool',
-    id: Date.now() + 5,
-    done: false,
-  },
-  {
-    text: 'gun shot',
-    id: Date.now() + 6,
-    done: false,
-  },
-]
+import { useAppDispatch, useAppSelector } from 'redux/hooks'
+import {
+  changeDoneTaskByID,
+  changeTasksSort,
+  changeTextTaskByID,
+  createTask,
+  removeTaskByID,
+} from 'redux/reducers/tasksReducer'
+import { todoFilterStyle, todoHeadLeftStyle, todoHeadRightStyle, todoHeadStyle, todoStyle } from './styles'
 
 export default function TodoList() {
-  const [task, setTask] = useState('cook cookies')
-  const [tasks, setTasks] = useState<Task[]>(mockTasks)
+  const [newTextTask, setNewTextTask] = useState('cook cookies')
   const [activeTab, setActiveTab] = useState<'all' | 'done' | 'notDone'>('all')
 
-  const changeNewTextTask = useCallback((text: string) => setTask(text), [])
+  const dispatch = useAppDispatch()
+  const tasks = useAppSelector(state => state.tasksState.tasks)
 
-  const createNewTask = useCallback(() => {
-    if (task) {
-      const newTask = { text: task, id: Date.now(), done: false }
-      setTasks([newTask, ...tasks])
-      setTask('')
+  const createTaskAndClear = useCallback(() => {
+    if (newTextTask) {
+      dispatch(createTask(newTextTask))
+      setNewTextTask('')
     }
-  }, [task, tasks])
+  }, [newTextTask])
 
   const inputKeyDown = useCallback(
     (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key == 'Enter') {
-        createNewTask()
+        createTaskAndClear()
       }
     },
-    [task, tasks]
-  )
-
-  const removeTaskByID = useCallback(
-    (id: number) => {
-      setTasks(tasks.filter(task => task.id != id))
-    },
-    [tasks]
-  )
-
-  const changeDoneTaskByID = useCallback(
-    (id: number, value: boolean) => {
-      setTasks(
-        tasks.map(task => {
-          if (task.id == id) {
-            return {
-              ...task,
-              done: value,
-            }
-          }
-          return task
-        })
-      )
-    },
-    [tasks]
-  )
-
-  const changeTaskByID = useCallback(
-    (id: number, value: string) => {
-      setTasks(tasks => {
-        return tasks.map(task => {
-          if (task.id == id) {
-            return {
-              ...task,
-              text: value,
-            }
-          }
-          return task
-        })
-      })
-    },
-    [tasks]
+    [newTextTask]
   )
 
   const changeSort = useCallback(
@@ -115,7 +41,7 @@ export default function TodoList() {
       const fromIndex = tasks.findIndex(task => task.id == from)
       const toIndex = tasks.findIndex(task => task.id == to)
       if (fromIndex > -1 && toIndex > -1) {
-        setTasks(arrayMoveImmutable(tasks, fromIndex, toIndex))
+        dispatch(changeTasksSort({ fromIndex, toIndex }))
       }
     },
     [tasks]
@@ -128,26 +54,22 @@ export default function TodoList() {
           <Input
             placeholder="write a new task"
             onKeyDown={inputKeyDown}
-            value={task}
-            onChange={event => changeNewTextTask(event.target.value)}
+            value={newTextTask}
+            onChange={event => setNewTextTask(event.target.value)}
           />
         </div>
         <div css={todoHeadRightStyle}>
-          <Button fullWidth={true} onClick={() => createNewTask()}>
+          <Button fullWidth={true} onClick={() => createTaskAndClear()}>
             create
           </Button>
         </div>
       </div>
 
-      <div
-        css={{
-          marginBottom: 8,
-        }}
-      >
-        <Button css={{ marginRight: 8 }} onClick={() => setActiveTab('all')} activeTab={activeTab == 'all'}>
+      <div css={todoFilterStyle}>
+        <Button onClick={() => setActiveTab('all')} activeTab={activeTab == 'all'}>
           All
         </Button>
-        <Button css={{ marginRight: 8 }} onClick={() => setActiveTab('notDone')} activeTab={activeTab == 'notDone'}>
+        <Button onClick={() => setActiveTab('notDone')} activeTab={activeTab == 'notDone'}>
           Not done
         </Button>
         <Button onClick={() => setActiveTab('done')} activeTab={activeTab == 'done'}>
@@ -163,10 +85,10 @@ export default function TodoList() {
             return (
               <TaskCard
                 key={task.id}
-                onRemove={() => removeTaskByID(task.id)}
-                onChangeDone={value => changeDoneTaskByID(task.id, value)}
+                onRemove={() => dispatch(removeTaskByID(task.id))}
+                onChangeDone={value => dispatch(changeDoneTaskByID({ id: task.id, value }))}
                 task={task}
-                onChangeTitle={title => changeTaskByID(task.id, title)}
+                onChangeText={text => dispatch(changeTextTaskByID({ id: task.id, text }))}
               />
             )
           })}

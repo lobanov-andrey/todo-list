@@ -8,12 +8,12 @@ const rightSideWidthAtTaskCard = 100
 
 export default function TaskCard({
   task,
-  onChangeTitle,
+  onChangeText,
   onChangeDone,
   onRemove,
 }: {
   task: Task
-  onChangeTitle: (title: string) => void
+  onChangeText: (text: string) => void
   onChangeDone: (value: boolean) => void
   onRemove: () => void
 }) {
@@ -33,7 +33,7 @@ export default function TaskCard({
           paddingRight: 10,
         }}
       >
-        <Textarea placeholder="type a task" value={task.text} onChange={value => onChangeTitle(value)} />
+        <Textarea placeholder="type a task" value={task.text} onChange={value => onChangeText(value)} />
       </div>
 
       <div

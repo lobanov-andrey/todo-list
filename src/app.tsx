@@ -2,12 +2,14 @@ import { css, Global } from '@emotion/react'
 import NotFound from 'components/NotFound/NotFound'
 import normalize from 'modules/normalize'
 import React from 'react'
+import { Provider } from 'react-redux'
 import { BrowserRouter, Route, Routes } from 'react-router-dom'
+import store from 'redux/store'
 import TodoList from 'screens/TodoList/TodoList'
 
 export default function App() {
   return (
-    <>
+    <Provider store={store}>
       <Global
         styles={css`
           ${normalize}
@@ -40,6 +42,6 @@ export default function App() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
-    </>
+    </Provider>
   )
 }
